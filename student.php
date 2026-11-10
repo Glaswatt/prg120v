@@ -31,6 +31,17 @@ $studentResultat = mysqli_query($db, "SELECT * FROM student")
 <head>
     <meta charset="UTF-8">
     <title>Administrer studenter</title>
+    <style>
+    body {
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+</style>
 </head>
 <body>
     <h1>Administrer studenter</h1>

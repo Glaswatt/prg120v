@@ -28,6 +28,17 @@ $sqlResultat = mysqli_query($db, $sqlSetning) or die("Ikke mulig å hente klasse
 <head>
     <meta charset="UTF-8">
     <title>Administrer klasser</title>
+    <style>
+    body {
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+</style>
 </head>
 <body>
     <h1>Administrer klasser</h1>
