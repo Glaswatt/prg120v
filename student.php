@@ -1,6 +1,8 @@
 <?php
 include("db.php");
 
+$melding = "";
+
 if (isset($_POST["registrerStudentKnapp"]))
 {
     $brukernavn = mysqli_real_escape_string($db, $_POST["brukernavn"]);
@@ -9,8 +11,23 @@ if (isset($_POST["registrerStudentKnapp"]))
     $klassekode = mysqli_real_escape_string($db, $_POST["klassekode"]);
 
     $sqlSetning = "INSERT INTO student VALUES('$brukernavn', '$fornavn', '$etternavn', '$klassekode')";
-    mysqli_query($db, $sqlSetning) or die("Ikke mulig å registrere student. Sjekk brukernavn og klasse.");
-    print("Studenten er registrert");
+    $databaseError = "";
+    try {
+        $queryResult = mysqli_query($db, $sqlSetning);
+        $errorCode = $queryResult === false ? mysqli_errno($db) : 0;
+    } catch (mysqli_sql_exception $error) {
+        $errorCode = $error->getCode();
+        $databaseError = $error->getMessage();
+    }
+
+    if ($errorCode === 1062) {
+        $melding = "Brukernavnet finnes allerede. Velg et annet brukernavn.";
+    } elseif ($errorCode !== 0) {
+        error_log($databaseError ?: mysqli_error($db));
+        $melding = "Det oppstod en feil ved registrering av studenten. Kontroller opplysningene og prøv igjen.";
+    } else {
+        $melding = "Studenten er registrert.";
+    }
 }
 
 if (isset($_POST["slettStudentKnapp"]))
@@ -45,6 +62,7 @@ $studentResultat = mysqli_query($db, "SELECT * FROM student")
 </head>
 <body>
     <h1>Administrer studenter</h1>
+    <?php if ($melding !== "") { ?><p><?php print(htmlspecialchars($melding)); ?></p><?php } ?>
     <p><a href="index.html">Til forsiden</a> | <a href="klasse.php">Administrer klasser</a></p>
 
     <h2>Registrer student</h2>

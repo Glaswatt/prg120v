@@ -1,6 +1,8 @@
 <?php
 include("db.php");
 
+$melding = "";
+
 if (isset($_POST["registrerKlasseKnapp"]))
 {
     $klassekode = mysqli_real_escape_string($db, $_POST["klassekode"]);
@@ -8,16 +10,46 @@ if (isset($_POST["registrerKlasseKnapp"]))
     $studiumkode = mysqli_real_escape_string($db, $_POST["studiumkode"]);
 
     $sqlSetning = "INSERT INTO klasse VALUES('$klassekode', '$klassenavn', '$studiumkode')";
-    mysqli_query($db, $sqlSetning) or die("Ikke mulig å registrere klasse");
-    print("Klassen er registrert");
+    $databaseError = "";
+    try {
+        $queryResult = mysqli_query($db, $sqlSetning);
+        $errorCode = $queryResult === false ? mysqli_errno($db) : 0;
+    } catch (mysqli_sql_exception $error) {
+        $errorCode = $error->getCode();
+        $databaseError = $error->getMessage();
+    }
+
+    if ($errorCode === 1062) {
+        $melding = "Klassekoden finnes allerede. Velg en annen klassekode.";
+    } elseif ($errorCode !== 0) {
+        error_log($databaseError ?: mysqli_error($db));
+        $melding = "Det oppstod en feil ved registrering av klassen. Kontroller opplysningene og prøv igjen.";
+    } else {
+        $melding = "Klassen er registrert.";
+    }
 }
 
 if (isset($_POST["slettKlasseKnapp"]))
 {
     $klassekode = mysqli_real_escape_string($db, $_POST["klassekode"]);
     $sqlSetning = "DELETE FROM klasse WHERE klassekode='$klassekode'";
-    mysqli_query($db, $sqlSetning) or die("Ikke mulig å slette klasse. Sjekk om studenter tilhører klassen.");
-    print("Klassen er slettet");
+    $databaseError = "";
+    try {
+        $queryResult = mysqli_query($db, $sqlSetning);
+        $errorCode = $queryResult === false ? mysqli_errno($db) : 0;
+    } catch (mysqli_sql_exception $error) {
+        $errorCode = $error->getCode();
+        $databaseError = $error->getMessage();
+    }
+
+    if ($errorCode === 1451) {
+        $melding = "Klassen kan ikke slettes fordi den har studenter tilknyttet.";
+    } elseif ($errorCode !== 0) {
+        error_log($databaseError ?: mysqli_error($db));
+        $melding = "Det oppstod en feil ved sletting av klassen. Prøv igjen.";
+    } else {
+        $melding = "Klassen er slettet.";
+    }
 }
 
 $sqlSetning = "SELECT * FROM klasse";
@@ -42,6 +74,7 @@ $sqlResultat = mysqli_query($db, $sqlSetning) or die("Ikke mulig å hente klasse
 </head>
 <body>
     <h1>Administrer klasser</h1>
+    <?php if ($melding !== "") { ?><p><?php print(htmlspecialchars($melding)); ?></p><?php } ?>
     <p><a href="index.html">Til forsiden</a> | <a href="student.php">Administrer studenter</a></p>
 
     <h2>Registrer klasse</h2>
